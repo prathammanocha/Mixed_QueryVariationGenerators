@@ -32,24 +32,30 @@ class ParaphraseActions():
         self.translation_tokenizer = M2M100Tokenizer.from_pretrained("facebook/m2m100_418M")
         self.translation_model.to(self.device)
 
-    def seq2seq_paraphrase(self, sample=None):
-        logging.info("Paraphrasing using pre-trained (and fine-tuned for paraphrasing) transformer seq2seq models .")
-        logging.info("Pre-trained models used: {}.".format(str([p[0] for p in self.paraphrase_pipelines])))
-        i=0
-        batch_size=16
-        query_variations = []        
-        for i in tqdm(range(0, len(self.queries), batch_size)):
-            queries = self.queries[i:i+batch_size]
-            q_ids_bactch = self.q_ids[i:i+batch_size]
-            queries_input = ["paraphrase : {}? </s>".format(query) for query in queries]
-            for pipeline_name, text2text in self.paraphrase_pipelines:
-                paraphrases = text2text(queries_input, num_beams=4, max_length = 40)
-                for j, paraphrase in enumerate(paraphrases):
-                    query_variations.append([q_ids_bactch[j], queries[j], paraphrase['generated_text'], pipeline_name, "paraphrase"])
-            i+=batch_size
-            if sample and i > sample:
-                break
-        return query_variations
+    def seq2seq_paraphrase(self, specific_queries=None, specific_q_ids=None, sample=None):
+      logging.info("Paraphrasing using pre-trained (and fine-tuned for paraphrasing) transformer seq2seq models .")
+      logging.info("Pre-trained models used: {}.".format(str([p[0] for p in self.paraphrase_pipelines])))
+      
+      if specific_queries is None:
+          specific_queries = self.queries
+      if specific_q_ids is None:
+          specific_q_ids = self.q_ids
+
+      i = 0
+      batch_size = 16
+      query_variations = []
+      for i in tqdm(range(0, len(specific_queries), batch_size)):
+          queries_batch = specific_queries[i:i+batch_size]
+          q_ids_batch = specific_q_ids[i:i+batch_size]
+          queries_input = ["paraphrase : {}? </s>".format(query) for query in queries_batch]
+          for pipeline_name, text2text in self.paraphrase_pipelines:
+              paraphrases = text2text(queries_input, num_beams=4, max_length=40)
+              for j, paraphrase in enumerate(paraphrases):
+                  query_variations.append([q_ids_batch[j], queries_batch[j], paraphrase['generated_text'], pipeline_name, "paraphrase"])
+          i += batch_size
+          if sample and i > sample:
+              break
+      return query_variations
 
     def back_translation(self, query, pivot_language='es'):
         # translate English to pivot language

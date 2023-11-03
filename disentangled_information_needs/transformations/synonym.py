@@ -32,17 +32,23 @@ class SynonymActions():
             # Augmenter(transformation=WordSwapMaskedLM(method="bae", max_candidates=15, max_length=125), transformations_per_example=1, constraints=LM_CONSTRAINT)
         ]
 
-    def adversarial_synonym_replacement(self, sample=None):
-        logging.info("Replacing words with synonyms using texttattack.")
-        logging.info("Methods used: {}.".format(str([t.transformation.__class__.__name__ for t in self.augmenters])))
-        i=0
-        query_variations = []
-        for query in tqdm(self.queries):
-            for augmenter in self.augmenters:
-                augmented = augmenter.augment(query)
-                for q_variation in augmented:
-                    query_variations.append([self.q_ids[i], query, q_variation, augmenter.transformation.__class__.__name__, "synonym"])
-            i+=1
-            if sample and i > sample:
-                break
-        return query_variations
+    def adversarial_synonym_replacement(self, specific_queries=None, specific_q_ids=None, sample=None):
+      logging.info("Replacing words with synonyms using texttattack.")
+      logging.info("Methods used: {}.".format(str([t.transformation.__class__.__name__ for t in self.augmenters])))
+      
+      if specific_queries is None:
+          specific_queries = self.queries
+      if specific_q_ids is None:
+          specific_q_ids = self.q_ids
+
+      i = 0
+      query_variations = []
+      for query, q_id in zip(specific_queries, specific_q_ids):
+          for augmenter in self.augmenters:
+              augmented = augmenter.augment(query)
+              for q_variation in augmented:
+                  query_variations.append([q_id, query, q_variation, augmenter.transformation.__class__.__name__, "synonym"])
+          i += 1
+          if sample and i > sample:
+              break
+      return query_variations
