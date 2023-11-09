@@ -156,7 +156,7 @@ def main():
             doc2query = pyterrier_doc2query.Doc2Query("{}/model.ckpt-1004000".format(args.output_dir), out_attr="text")
             indexer = doc2query >> pt.index.IterDictIndexer(index_path_docT5query)
             logging.info("Indexing with doc2query documents.")
-            indexref = indexer.index(dataset.get_corpus_iter()) f
+            indexref = indexer.index(dataset.get_corpus_iter())
         logging.info("Loading doc2query index")
         index = pt.IndexFactory.of(index_path_docT5query+"/data.properties")
         retrieval_model = pt.BatchRetrieve(index, wmodel="BM25") % args.cutoff_threshold
