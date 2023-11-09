@@ -80,7 +80,7 @@ def main():
     parser.add_argument("--max_iter", default=400, type=int, required=False)
     args = parser.parse_args()
 
-    query_variations = pd.read_csv(args.variations_file)
+    query_variations = pd.read_csv(args.variations_file, sep="\t")
     query_variations["query"] = query_variations.apply(lambda r, re=re: re.sub('[\W_]', ' ',  r['original_query'].lower()), axis=1)
     query_variations["variation"] = query_variations.apply(lambda r, re=re: re.sub('[\W_]', ' ',  r['variation'].lower()), axis=1)
     query_variations["variation"] = query_variations.apply(lambda r: r['query'] if r['variation'].strip() == "" else r['variation'], axis=1)
