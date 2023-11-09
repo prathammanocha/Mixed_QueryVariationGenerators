@@ -90,7 +90,7 @@ def main():
     index_path = '{}/{}-index'.format(args.output_dir, args.task.replace('/', '-'))
     if not os.path.isdir(index_path):
         indexer = pt.index.IterDictIndexer(index_path)
-        indexref = indexer.index(dataset.get_corpus_iter(), fields=('doc_id', 'text'))
+        indexref = indexer.index(dataset.get_corpus_iter(), fields=('text',))
     index = pt.IndexFactory.of(index_path+"/data.properties")
 
     if args.retrieval_model_name == "BM25":
@@ -156,7 +156,7 @@ def main():
             doc2query = pyterrier_doc2query.Doc2Query("{}/model.ckpt-1004000".format(args.output_dir), out_attr="text")
             indexer = doc2query >> pt.index.IterDictIndexer(index_path_docT5query)
             logging.info("Indexing with doc2query documents.")
-            indexref = indexer.index(dataset.get_corpus_iter())
+            indexref = indexer.index(dataset.get_corpus_iter()) f
         logging.info("Loading doc2query index")
         index = pt.IndexFactory.of(index_path_docT5query+"/data.properties")
         retrieval_model = pt.BatchRetrieve(index, wmodel="BM25") % args.cutoff_threshold
